@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/Prayag2003/kubernetes-simulation/internal/models"
+	"github.com/Prayag2003/kubernetes-simulation/utils"
 )
 
 func StartPod(pod *models.Pod, stopChan chan struct{}) {
-	fmt.Printf("[Pod %s] starting ....\n", pod.ID)
+	utils.LogInfo("Pod", fmt.Sprintf("Pod %s starting ...", pod.ID))
 	pod.Status = models.Running
 	pod.StartTime = time.Now()
 
@@ -25,13 +26,14 @@ func StartPod(pod *models.Pod, stopChan chan struct{}) {
 				Memory: mem,
 			}
 
+			utils.LogInfo("Pod", fmt.Sprintf("Pod %s CPU: %.2fm, MEM: %.2fMB", pod.ID, cpu, mem))
 			log := fmt.Sprintf("[Pod %s] CPU: %.2fm, MEM: %.2fMB", pod.ID, cpu, mem)
 			pod.Logs = append(pod.Logs, log)
 
 		case <-stopChan:
 			ticker.Stop()
 			pod.Status = models.Succeeded
-			fmt.Printf("[Pod %s] stopped.\n", pod.ID)
+			utils.LogWarn("Pod", fmt.Sprintf("Pod %s stopped.", pod.ID))
 			return
 		}
 	}
