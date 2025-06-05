@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+
+	"github.com/Prayag2003/kubernetes-simulation/utils"
 )
 
 type EtcdStore struct {
@@ -19,6 +21,7 @@ func GetStore() *EtcdStore {
 		store = &EtcdStore{
 			data: make(map[string][]byte),
 		}
+		utils.LogInfo("EtcdStore", "Initialized in-memory etcd-style store.")
 	})
 	return store
 }
@@ -29,25 +32,54 @@ func (e *EtcdStore) Set(key string, value any) error {
 
 	bytes, err := json.Marshal(value)
 	if err != nil {
-		return fmt.Errorf("Marshall failed: %w", err)
+		utils.LogError("EtcdStore", fmt.Sprintf("Marshal failed for key=%s: %v", key, err))
+		return fmt.Errorf("marshal failed: %w", err)
 	}
 
 	e.data[key] = bytes
+	utils.LogSuccess("EtcdStore", fmt.Sprintf("Set key=%s", key))
 	return nil
 }
 
 func (e *EtcdStore) Get(key string, out any) error {
-	e.Lock()
-	defer e.Unlock()
+	e.RLock()
+	defer e.RUnlock()
 
 	val, exists := e.data[key]
 	if !exists {
-		return fmt.Errorf("Key not found: %s", key)
+		utils.LogWarn("EtcdStore", fmt.Sprintf("Get failed: key not found (%s)", key))
+		return fmt.Errorf("key not found: %s", key)
 	}
 
 	if err := json.Unmarshal(val, out); err != nil {
-		return fmt.Errorf("unmarshall failed: %w", err)
+		utils.LogError("EtcdStore", fmt.Sprintf("Unmarshal failed for key=%s: %v", key, err))
+		return fmt.Errorf("unmarshal failed: %w", err)
 	}
 
+	utils.LogInfo("EtcdStore", fmt.Sprintf("Get success: key=%s", key))
 	return nil
+}
+
+func (e *EtcdStore) Delete(key string) {
+	e.Lock()
+	defer e.Unlock()
+
+	delete(e.data, key)
+	utils.LogWarn("EtcdStore", fmt.Sprintf("Deleted key=%s", key))
+}
+
+func (e *EtcdStore) List(prefix string) map[string][]byte {
+	e.RLock()
+	defer e.RUnlock()
+
+	results := make(map[string][]byte)
+	count := 0
+	for k, v := range e.data {
+		if len(k) >= len(prefix) && k[:len(prefix)] == prefix {
+			results[k] = v
+			count++
+		}
+	}
+	utils.LogInfo("EtcdStore", fmt.Sprintf("Listed %d keys with prefix=%s", count, prefix))
+	return results
 }
