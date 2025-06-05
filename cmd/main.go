@@ -10,11 +10,19 @@ import (
 func main() {
 	kube := kubeapi.NewKubeAPI()
 
-	id := kube.CreatePod("nginx")
-	time.Sleep(4 * time.Second)
+	var podIDs []string
+	for i := 1; i <= 5; i++ {
+		name := fmt.Sprintf("nginx-%d", i)
+		id := kube.CreatePod(name)
+		podIDs = append(podIDs, id)
+	}
 
-	kube.DeletePod(id)
+	time.Sleep(6 * time.Second)
+
+	for _, id := range podIDs {
+		kube.DeletePod(id)
+	}
+
 	time.Sleep(2 * time.Second)
-
-	fmt.Println("[Main] simulation successfull.")
+	fmt.Println("[Main] All pods cleaned up. Simulation successful.")
 }

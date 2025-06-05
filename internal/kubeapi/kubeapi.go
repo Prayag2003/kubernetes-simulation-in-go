@@ -38,7 +38,7 @@ func (k *KubeAPI) CreatePod(name string) string {
 	k.StopChans[id] = stopChan
 
 	go pod.StartPod(p, stopChan)
-	fmt.Sprintf("[KubeAPI] has created Pod with ID = %s Name = %s\n", p.ID, p.Name)
+	fmt.Printf("[KubeAPI] has created Pod with ID = %s Name = %s\n", p.ID, p.Name)
 
 	return id
 }
