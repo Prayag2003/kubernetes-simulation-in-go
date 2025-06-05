@@ -1,28 +1,24 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/Prayag2003/kubernetes-simulation/internal/kubeapi"
+	"github.com/Prayag2003/kubernetes-simulation/internal/simulator"
+	"github.com/Prayag2003/kubernetes-simulation/utils"
 )
 
 func main() {
 	kube := kubeapi.NewKubeAPI()
+	utils.LogInfo("Main", "Starting workload simulation...")
+	simulator.StartWorkloadSim(kube)
 
-	var podIDs []string
-	for i := 1; i <= 5; i++ {
-		name := fmt.Sprintf("nginx-%d", i)
-		id := kube.CreatePod(name)
-		podIDs = append(podIDs, id)
-	}
+	time.Sleep(30 * time.Second)
 
-	time.Sleep(6 * time.Second)
-
-	for _, id := range podIDs {
+	utils.LogWarn("Main", "Cleaning up all pods...")
+	for id := range kube.Pods {
 		kube.DeletePod(id)
 	}
 
-	time.Sleep(2 * time.Second)
-	fmt.Println("[Main] All pods cleaned up. Simulation successful.")
+	utils.LogSuccess("Main", "Simulation completed.")
 }

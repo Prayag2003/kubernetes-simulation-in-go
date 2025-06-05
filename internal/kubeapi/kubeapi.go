@@ -6,6 +6,7 @@ import (
 
 	"github.com/Prayag2003/kubernetes-simulation/internal/models"
 	"github.com/Prayag2003/kubernetes-simulation/internal/pod"
+	"github.com/Prayag2003/kubernetes-simulation/utils"
 	"github.com/google/uuid"
 )
 
@@ -38,7 +39,7 @@ func (k *KubeAPI) CreatePod(name string) string {
 	k.StopChans[id] = stopChan
 
 	go pod.StartPod(p, stopChan)
-	fmt.Printf("[KubeAPI] has created Pod with ID = %s Name = %s\n", p.ID, p.Name)
+	utils.LogSuccess("KubeAPI", fmt.Sprintf("Created Pod: ID=%s, Name=%s", id, name))
 
 	return id
 }
@@ -49,7 +50,7 @@ func (k *KubeAPI) DeletePod(id string) {
 
 	stopChan, exists := k.StopChans[id]
 	if !exists {
-		fmt.Printf("[KubeAPI] Pod ID = %s not found\n", id)
+		utils.LogError("KubeAPI", fmt.Sprintf("Pod ID=%s not found", id))
 		return
 	}
 
@@ -57,5 +58,5 @@ func (k *KubeAPI) DeletePod(id string) {
 	delete(k.Pods, id)
 	delete(k.StopChans, id)
 
-	fmt.Printf("[KubeAPI] Pod ID = %s deleted\n", id)
+	utils.LogWarn("KubeAPI", fmt.Sprintf("Deleted Pod ID=%s", id))
 }
