@@ -12,12 +12,12 @@ const (
 )
 
 type Pod struct {
-	ID            string    `json:"id"`
-	Name          string    `json:"name"`
-	Status        PodStatus `json:"status"`
-	StartTime     time.Time `json:"start_time"`
-	Logs          []string
-	ResourceUsage ResourceUsage
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Status    PodStatus `json:"status"`
+	StartTime time.Time `json:"start_time"`
+	Logs      []string
+	Resources ResourceUsage
 }
 
 type ResourceUsage struct {
