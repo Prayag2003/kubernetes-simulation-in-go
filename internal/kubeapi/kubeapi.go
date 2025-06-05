@@ -42,3 +42,20 @@ func (k *KubeAPI) CreatePod(name string) string {
 
 	return id
 }
+
+func (k *KubeAPI) DeletePod(id string) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	stopChan, exists := k.StopChans[id]
+	if !exists {
+		fmt.Printf("[KubeAPI] Pod ID = %s not found\n", id)
+		return
+	}
+
+	close(stopChan)
+	delete(k.Pods, id)
+	delete(k.StopChans, id)
+
+	fmt.Printf("[KubeAPI] Pod ID = %s deleted\n", id)
+}
