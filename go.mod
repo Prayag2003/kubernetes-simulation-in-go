@@ -1,3 +1,3 @@
 module github.com/Prayag2003/kubernetes-simulation
 
-go 1.21.2
+go 1.22.3
