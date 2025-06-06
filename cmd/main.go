@@ -52,5 +52,5 @@ func main() {
 	}
 
 	analytics.Log("Main", "success", "SimulationDone", "Simulation completed.")
-	analytics.PrintSummary()
+	analytics.Summary()
 }
