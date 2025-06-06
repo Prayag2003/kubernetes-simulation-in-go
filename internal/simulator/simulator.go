@@ -20,12 +20,9 @@ func StartWorkloadSim(kube *kubeapi.KubeAPI) {
 			kube.CreatePod(name)
 			podCount++
 
-			// Randomly delete a pod occasionally
-			if len(kube.Pods) > 3 && rand.Float64() < 0.3 {
-				for id := range kube.Pods {
-					kube.DeletePod(id)
-					break
-				}
+			pods := kube.ListPods()
+			if len(pods) > 3 && rand.Float64() < 0.3 {
+				kube.DeletePod(pods[0].ID)
 			}
 		}
 	}()
