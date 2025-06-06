@@ -4,13 +4,13 @@ import (
 	"flag"
 	"time"
 
+	"github.com/Prayag2003/kubernetes-simulation/internal/analytics"
 	hpa "github.com/Prayag2003/kubernetes-simulation/internal/autoscaler"
 	"github.com/Prayag2003/kubernetes-simulation/internal/config"
 	"github.com/Prayag2003/kubernetes-simulation/internal/etcdstore"
 	"github.com/Prayag2003/kubernetes-simulation/internal/kubeapi"
 	"github.com/Prayag2003/kubernetes-simulation/internal/models"
 	"github.com/Prayag2003/kubernetes-simulation/internal/simulator"
-	"github.com/Prayag2003/kubernetes-simulation/utils"
 )
 
 func main() {
@@ -18,16 +18,16 @@ func main() {
 	flag.Parse()
 
 	kube := kubeapi.NewKubeAPI()
-	utils.LogInfo("Main", "Starting workload simulation...")
+	analytics.Log("Main", "info", "StartSimulation", "Starting workload simulation...")
 	simulator.StartWorkloadSim(kube)
 
 	// Load and apply HPA config
 	if *hpaConfigPath != "" {
 		cfg, err := config.LoadHPAConfigFromFile(*hpaConfigPath)
 		if err != nil {
-			utils.LogError("Main", "Failed to load HPA config: "+err.Error())
+			analytics.Log("Main", "error", "HPAConfigLoad", "Failed to load HPA config: "+err.Error())
 		} else if cfg.Enabled {
-			utils.LogInfo("Main", "HPA config loaded. Starting autoscaler...")
+			analytics.Log("Main", "info", "HPAEnabled", "HPA config loaded. Starting autoscaler...")
 			hpa.StartHPA(kube, hpa.HPAConfig{
 				TargetCPU: cfg.TargetCPU,
 				MinPods:   cfg.MinPods,
@@ -35,7 +35,7 @@ func main() {
 				Interval:  time.Duration(cfg.IntervalSeconds) * time.Second,
 			})
 		} else {
-			utils.LogWarn("Main", "HPA config disabled.")
+			analytics.Log("Main", "warn", "HPADisabled", "HPA config disabled.")
 		}
 	}
 
@@ -45,11 +45,12 @@ func main() {
 
 	time.Sleep(30 * time.Second)
 
-	utils.LogWarn("Main", "Cleaning up all pods...")
+	analytics.Log("Main", "warn", "Cleanup", "Cleaning up all pods...")
 	for _, pod := range kube.ListPods() {
 		kube.DeletePod(pod.ID)
 		etcdstore.GetStore().Delete("/pods/" + pod.ID)
 	}
 
-	utils.LogSuccess("Main", "Simulation completed.")
+	analytics.Log("Main", "success", "SimulationDone", "Simulation completed.")
+	analytics.PrintSummary()
 }

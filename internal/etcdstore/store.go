@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Prayag2003/kubernetes-simulation/utils"
+	"github.com/Prayag2003/kubernetes-simulation/internal/analytics"
 )
 
 type EtcdStore struct {
@@ -21,7 +21,7 @@ func GetStore() *EtcdStore {
 		store = &EtcdStore{
 			data: make(map[string][]byte),
 		}
-		utils.LogInfo("EtcdStore", "Initialized in-memory etcd-style store.")
+		analytics.Log("EtcdStore", "info", "Init", "Initialized in-memory etcd-style store.")
 	})
 	return store
 }
@@ -32,12 +32,12 @@ func (e *EtcdStore) Set(key string, value any) error {
 
 	bytes, err := json.Marshal(value)
 	if err != nil {
-		utils.LogError("EtcdStore", fmt.Sprintf("Marshal failed for key=%s: %v", key, err))
+		analytics.Log("EtcdStore", "error", "MarshalFailed", fmt.Sprintf("key=%s: %v", key, err))
 		return fmt.Errorf("marshal failed: %w", err)
 	}
 
 	e.data[key] = bytes
-	utils.LogSuccess("EtcdStore", fmt.Sprintf("Set key=%s", key))
+	analytics.Log("EtcdStore", "success", "SetKey", fmt.Sprintf("key=%s", key))
 	return nil
 }
 
@@ -47,16 +47,16 @@ func (e *EtcdStore) Get(key string, out any) error {
 
 	val, exists := e.data[key]
 	if !exists {
-		utils.LogWarn("EtcdStore", fmt.Sprintf("Get failed: key not found (%s)", key))
+		analytics.Log("EtcdStore", "warn", "KeyNotFound", fmt.Sprintf("key=%s", key))
 		return fmt.Errorf("key not found: %s", key)
 	}
 
 	if err := json.Unmarshal(val, out); err != nil {
-		utils.LogError("EtcdStore", fmt.Sprintf("Unmarshal failed for key=%s: %v", key, err))
+		analytics.Log("EtcdStore", "error", "UnmarshalFailed", fmt.Sprintf("key=%s: %v", key, err))
 		return fmt.Errorf("unmarshal failed: %w", err)
 	}
 
-	utils.LogInfo("EtcdStore", fmt.Sprintf("Get success: key=%s", key))
+	analytics.Log("EtcdStore", "info", "GetKey", fmt.Sprintf("key=%s", key))
 	return nil
 }
 
@@ -65,7 +65,7 @@ func (e *EtcdStore) Delete(key string) {
 	defer e.Unlock()
 
 	delete(e.data, key)
-	utils.LogWarn("EtcdStore", fmt.Sprintf("Deleted key=%s", key))
+	analytics.Log("EtcdStore", "warn", "DeletedKey", fmt.Sprintf("key=%s", key))
 }
 
 func (e *EtcdStore) List(prefix string) map[string][]byte {
@@ -80,6 +80,6 @@ func (e *EtcdStore) List(prefix string) map[string][]byte {
 			count++
 		}
 	}
-	utils.LogInfo("EtcdStore", fmt.Sprintf("Listed %d keys with prefix=%s", count, prefix))
+	analytics.Log("EtcdStore", "info", "ListKeys", fmt.Sprintf("Listed %d keys with prefix=%s", count, prefix))
 	return results
 }

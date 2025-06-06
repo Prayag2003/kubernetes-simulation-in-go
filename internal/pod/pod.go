@@ -5,12 +5,12 @@ import (
 	"math/rand/v2"
 	"time"
 
+	"github.com/Prayag2003/kubernetes-simulation/internal/analytics"
 	"github.com/Prayag2003/kubernetes-simulation/internal/models"
-	"github.com/Prayag2003/kubernetes-simulation/utils"
 )
 
 func StartPod(pod *models.Pod, stopChan chan struct{}) {
-	utils.LogInfo("Pod", fmt.Sprintf("Pod %s starting ...", pod.ID))
+	analytics.Log("Pod", "info", "PodStart", fmt.Sprintf("Pod %s starting ...", pod.ID))
 	pod.Status = models.Running
 	pod.StartTime = time.Now()
 
@@ -26,14 +26,14 @@ func StartPod(pod *models.Pod, stopChan chan struct{}) {
 				Memory: mem,
 			}
 
-			utils.LogInfo("Pod", fmt.Sprintf("Pod %s CPU: %.2fm, MEM: %.2fMB", pod.ID, cpu, mem))
+			analytics.Log("Pod", "info", "PodMetrics", fmt.Sprintf("Pod %s CPU: %.2fm, MEM: %.2fMB", pod.ID, cpu, mem))
 			log := fmt.Sprintf("[Pod %s] CPU: %.2fm, MEM: %.2fMB", pod.ID, cpu, mem)
 			pod.Logs = append(pod.Logs, log)
 
 		case <-stopChan:
 			ticker.Stop()
 			pod.Status = models.Succeeded
-			utils.LogWarn("Pod", fmt.Sprintf("Pod %s stopped.", pod.ID))
+			analytics.Log("Pod", "warn", "PodStop", fmt.Sprintf("Pod %s stopped.", pod.ID))
 			return
 		}
 	}
