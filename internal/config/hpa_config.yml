@@ -1,0 +1,5 @@
+enabled: true
+targetCPU: 60
+minPods: 2
+maxPods: 8
+intervalSeconds: 5
