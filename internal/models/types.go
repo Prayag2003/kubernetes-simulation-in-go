@@ -24,3 +24,12 @@ type ResourceUsage struct {
 	CPU    float64
 	Memory float64
 }
+
+type Node struct {
+	ID      string
+	Name    string
+	CPU     float64
+	Memory  float64
+	UsedCPU float64
+	UsedMem float64
+}
