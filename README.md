@@ -1,6 +1,6 @@
 # Kubernetes Simulation in Go
 
-A lightweight simulation of Kubernetes pods, nodes, and API server behavior — built entirely in Go. Designed for learning Kubernetes internals, simulating cluster events, building visual UIs, or experimenting with schedulers and autoscalers (HPA/VPA).
+A lightweight simulation of Kubernetes pods, nodes, and API server behavior built entirely in Go. Designed for learning Kubernetes internals, or experimenting with schedulers and autoscalers (HPA).
 
 ---
 
