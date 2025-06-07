@@ -3,6 +3,7 @@ package hpa
 import (
 	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/Prayag2003/kubernetes-simulation/internal/analytics"
@@ -16,7 +17,13 @@ type HPAConfig struct {
 	Interval  time.Duration
 }
 
+var (
+	currentConfig HPAConfig
+	configMu      = sync.RWMutex{}
+)
+
 func StartHPA(kube *kubeapi.KubeAPI, config HPAConfig) {
+	currentConfig = config
 	go func() {
 		for {
 			time.Sleep(config.Interval)
@@ -30,7 +37,6 @@ func StartHPA(kube *kubeapi.KubeAPI, config HPAConfig) {
 				continue
 			}
 
-			// Simulate CPU load
 			totalCPU := 0
 			for _, pod := range pods {
 				cpu := rand.Intn(100)
@@ -52,4 +58,16 @@ func StartHPA(kube *kubeapi.KubeAPI, config HPAConfig) {
 			}
 		}
 	}()
+}
+
+func GetHPAConfig() HPAConfig {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	return currentConfig
+}
+
+func UpdateHPAConfig(config HPAConfig) {
+	configMu.Lock()
+	currentConfig = config
+	configMu.Unlock()
 }
