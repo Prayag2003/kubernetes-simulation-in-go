@@ -74,3 +74,12 @@ func (k *KubeAPI) ListPods() []*models.Pod {
 	}
 	return result
 }
+
+func (k *KubeAPI) GetPod(id string) *models.Pod {
+	var pod models.Pod
+	err := etcdstore.GetStore().Get("/pods/"+id, &pod)
+	if err != nil {
+		return nil
+	}
+	return &pod
+}
