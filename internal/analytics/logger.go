@@ -16,6 +16,16 @@ const (
 	ColorWhite  = "\033[97m"
 )
 
+type LogEntry struct {
+	Timestamp string `json:"timestamp"`
+	Component string `json:"component"`
+	Level     string `json:"level"`
+	Event     string `json:"event"`
+	Message   string `json:"message"`
+}
+
+var logs []LogEntry
+
 var mu sync.Mutex
 
 var metrics = map[string]int{
@@ -42,29 +52,53 @@ func Log(component, level, event, message string) {
 		metrics["errors"]++
 	}
 
-	color := ColorWhite
-	switch level {
-	case "info":
-		color = ColorCyan
-	case "success":
-		color = ColorGreen
-	case "warn":
-		color = ColorYellow
-	case "error":
-		color = ColorRed
+	entry := LogEntry{
+		Timestamp: time.Now().Format("15:04:05"),
+		Component: component,
+		Level:     level,
+		Event:     event,
+		Message:   message,
+	}
+	logs = append(logs, entry)
+
+	// Color-coded console log
+	color := map[string]string{
+		"info":    ColorCyan,
+		"success": ColorGreen,
+		"warn":    ColorYellow,
+		"error":   ColorRed,
+	}[level]
+
+	if color == "" {
+		color = ColorWhite
 	}
 
-	fmt.Printf("%s[%s][%s][%s][%s] %s%s\n", color, time.Now().Format("15:04:05"), component, level, event, message, ColorReset)
+	fmt.Printf("%s[%s][%s][%s][%s] %s%s\n", color, entry.Timestamp, component, level, event, message, ColorReset)
 }
 
-func Summary() {
+func Summary() map[string]int {
 	mu.Lock()
 	defer mu.Unlock()
 
-	fmt.Println("\n--- Simulation Summary ---")
-	fmt.Printf("Total Pods Created : %d\n", metrics["pods_created"])
-	fmt.Printf("Total Pods Deleted : %d\n", metrics["pods_deleted"])
-	fmt.Printf("Errors Logged      : %d\n", metrics["errors"])
-	fmt.Printf("Total Log Events   : %d\n", metrics["logs"])
-	fmt.Println("---------------------------")
+	return map[string]int{
+		"pods_created": metrics["pods_created"],
+		"pods_deleted": metrics["pods_deleted"],
+		"errors":       metrics["errors"],
+		"logs":         metrics["logs"],
+	}
+}
+
+func GetLogs() []LogEntry {
+	mu.Lock()
+	defer mu.Unlock()
+
+	out := make([]LogEntry, len(logs))
+	copy(out, logs)
+	return out
+}
+
+func ClearLogs() {
+	mu.Lock()
+	defer mu.Unlock()
+	logs = []LogEntry{}
 }
