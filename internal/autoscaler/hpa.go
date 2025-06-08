@@ -44,6 +44,12 @@ func StartHPA(kube *kubeapi.KubeAPI, config HPAConfig) {
 				totalCPU += cpu
 			}
 
+			/*
+				Calculate the average CPU usage across all pods.
+				If the average CPU usage is above the target and we haven't reached the max pod limit, scale up by adding a pod.
+				If the average CPU usage is less than half the target and we're above the min pod limit, scale down by removing a pod.
+				Otherwise, keep the number of pods stable.
+			*/
 			avgCPU := totalCPU / numPods
 			analytics.Log("HPA", "info", "AvgCPU", "Average CPU = "+strconv.Itoa(avgCPU)+"%")
 
